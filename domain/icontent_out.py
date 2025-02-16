@@ -8,6 +8,6 @@ class IContentOut:
         """
 
     @abstractmethod
-    def write(self, lines: List) -> None:
+    def write(self, content: str) -> None:
         """
         """

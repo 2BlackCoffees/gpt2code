@@ -3,6 +3,9 @@ import json
 from pprint import pprint, pformat
 from pathlib import Path
 class LLMUtils:
+    # In order to get purely Python code, we would need to define specific grammars on the server side:
+    https://github.com/ggml-org/llama.cpp/blob/master/grammars/README.md 
+     
     def __init__(self, external_file_code_requests: str):
         external_code_requests: List = self.__read_json(external_file_code_requests)
         self.external_code_llm_requests = [

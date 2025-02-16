@@ -11,7 +11,7 @@ class ContentOut(IContentOut):
         with open(self.out_file_name, "w", encoding="utf-8") as file:            
             file.write('')    
 
-    def write(self, lines: List) -> None:
+    def write(self, content: str) -> None:
         with open(self.out_file_name, "a", encoding="utf-8") as file:            
-            file.write('\n'.join(lines))
+            file.write(content + '\n')
 

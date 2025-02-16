@@ -42,17 +42,24 @@ class GPT2Unittests:
                 self.content_out.write(response['response'])
 
     def __gpt2code(self):
-        for root, _, files in os.walk(self.from_directory):
+        directories_to_skip = [".git"]
+        for root, directories, files in os.walk(self.from_directory):
             level: int = root.replace(self.from_directory, '').count(os.sep)
+            current_dir = root.replace(self.from_directory + os.sep, '')
+            if sum([ 1 if current_dir == dir_to_skip or current_dir.startswith(dir_to_skip + os.sep) else 0 for dir_to_skip in directories_to_skip]) > 0:
+                self.logger.debug(f'Skipping directory {current_dir}')
+                continue
             indent: str = ' ' * 4 * (level)
             information: str = f'{self.file_type.get_comment_characters()} Analyzing {indent}{os.path.basename(root)}/'
             self.logger.info(information)
             subindent = ' ' * 4 * (level + 1)
-            for full_file_name in files:
+            for file_name in files:
+                full_file_name: str = f'{current_dir}{os.sep}{file_name}'
                 if self.files_to_skip is not None and len(self.files_to_skip) > 0 and full_file_name in self.files_to_skip:
                     self.logger.info(f'Skipping file {full_file_name} as per request')
                 _, file_extension = os.path.splitext(full_file_name)
                 if re.match(self.file_type.get_file_extension(), file_extension):
+                    from_file: str = f'{root}{os.sep}{file_name}'
                     to_file: str = f'{self.to_directory}{os.sep}{full_file_name}'
                     os.makedirs(os.path.dirname(to_file), exist_ok=True)
                     self.logger.info(f"Processing {full_file_name} into {to_file}.")
@@ -61,10 +68,10 @@ class GPT2Unittests:
                     self.logger.info(sub_information)
                     self.content_out.write(information)
                     self.content_out.write(sub_information)
-                    with open(full_file_name, 'r') as file:
+                    with open(from_file, 'r', encoding="utf-8") as file:
                         file_content = file.read()
 
-                    checker: IRequests = CodeChecker(self.llm_utils, self.additional_requests, f' ({full_file_name})')
+                    checker: IRequests = CodeChecker(self.llm_utils, self.additional_requests, f' ({file_name})')
                     self.llm_access.set_checker(checker)
                     self.__send_llm_requests_and_expand_output(file_content)
 
