@@ -34,22 +34,17 @@ class LLMAccess(AbstractLLMAccess):
                 {"role": "user", "content": content}], \
                request_name
 
-    def _create_messages(self, request_inputs: List, file_content: str, language_name: str):
+    def _create_messages(self, request_input: Dict, file_content: str, language_name: str):
         llm_requests: List = []
         request_names: List = []
-        if len(request_inputs) > 0:
-            # Prepare request and add content of slide
-            llm_requests, request_name = self._create_message(file_content, request_inputs[0]["request_name"], language_name)
-            request_names.append(request_name)
-            for request_input in request_inputs:
-                llm_requests.append({"role": "user", "content": self._get_request_llm_to_string(request_input)})
-                request_names.append(request_input["request_name"])
+        # Prepare request and add content of slide
+        llm_requests, request_name = self._create_message(file_content, request_input["request_name"], language_name)
+        request_names.append(request_name)
+        llm_requests.append({"role": "user", "content": self._get_request_llm_to_string(request_input)})
 
         return llm_requests, request_names
 
     def _send_request_plain(self, messages: List, generated_file_extension: str, request_name: str) -> str: 
-        #pprint(self.slide_content)
-        #pprint(request)
         return_message: str = None
 
         self.logger.info(f'Requesting {request_name}')
@@ -62,7 +57,7 @@ class LLMAccess(AbstractLLMAccess):
 
         return {
             'request_name': request_name,
-            'response': return_message ,
+            'response': return_message,
             'generated_file_extension': generated_file_extension
         }
 
@@ -87,13 +82,13 @@ class LLMAccess(AbstractLLMAccess):
         return response
     
     
-    def _prepare_and_send_requests(self, request_inputs: List, language_name: str) -> List:
+    def _prepare_and_send_request(self, request_input: Dict, language_name: str) -> List:
         return_value: List = []
-        file_content: str = request_inputs[0]['file_content'] if len(request_inputs) > 0 else None
-        error_information: str = request_inputs[0]['error_information'] if len(request_inputs) > 0 else None
+        file_content: str = request_input['file_content'] 
+        error_information: str = request_input['error_information'] 
 
-        llm_requests, request_names = self._create_messages(request_inputs, file_content, language_name)
-        return_value.append(self._send_request(llm_requests, request_inputs[0]['generated_file_extension'], \
+        llm_requests, request_names = self._create_messages(request_input, file_content, language_name)
+        return_value.append(self._send_request(llm_requests, request_input['generated_file_extension'], \
                                                 error_information, \
                                                 " & ".join(request_names)))
         return return_value

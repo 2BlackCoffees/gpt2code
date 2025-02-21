@@ -1,14 +1,15 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Dict
 from domain.llm_utils import LLMUtils
+from pprint import pprint, pformat
 class IRequests(ABC):
-    def __init__(self, llm_utils: LLMUtils, from_list: List,  error_information: str):
+    def __init__(self, llm_utils: LLMUtils, request: int,  error_information: str):
         self.llm_utils = llm_utils
-        self.from_list = from_list
+        self.request = request
         self.error_information = error_information
 
     @abstractmethod
-    def get_all_requests(self) -> List:
+    def get_request(self) -> Dict:
         """
         """
 
@@ -16,8 +17,10 @@ class IRequests(ABC):
         return self.error_information 
 
 class CodeChecker(IRequests):
-    def get_all_requests(self) -> List:
-        return self.llm_utils.get_all_code_llm_requests(self.from_list)
+    def get_request(self) -> Dict:
+        list_value: List = self.llm_utils.get_all_code_llm_requests([self.request])
+        return list_value[0]
+
 
 
 

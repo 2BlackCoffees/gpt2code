@@ -14,18 +14,17 @@ from domain.ifile_type import IFileType
 from infrastructure.llm_access import LLMAccess
 from infrastructure.llm_access_simulate import LLMAccessSimulateCalls
 from infrastructure.content_out import ContentOut
-from infrastructure.file_types import FileTypeCpp, FileTypeJava, FileTypePython, FileTypeShell, FileTypeTypescript
+from infrastructure.file_types import FileTypeCpp, FileTypeJava, FileTypePython, \
+                                      FileTypeShell, FileTypeTypescript, FileTypePlantUML, \
+                                      FileTypeAll
 
 
 class ApplicationService:
     def __init__(self, from_directory: str, to_directory: str, skip_files: List, language_name: str, simulate_calls_only: bool, \
-                 logging_level: logging, llm_utils: LLMUtils, \
-                 selected_code_requests: List, model_name: str, multiple_analysis: bool):
+                 logger: any, llm_utils: LLMUtils, \
+                 selected_code_request: int, model_name: str, \
+                 force_source_file_types: List, force_destination_file_type: str, force_comment_string: str, force_destination_language_name: str):
 
-        program_name = os.path.basename(sys.argv[0])
-        logger = logging.getLogger(f'loggername_{program_name}')
-
-        logging.basicConfig(encoding='utf-8', level=logging_level)
 
         path = Path(from_directory)
         if not path.is_dir():
@@ -34,33 +33,38 @@ class ApplicationService:
 
         information_user: List = []
         if skip_files is not None and len(skip_files) > 0:
-            information_user.append(f"Slides to be skipped are: {skip_files}")
-
-        if len(selected_code_requests) > 0:
-            information_user.append(f"LLM artistic Requests to be applied on each slide are: {llm_utils.get_all_code_requests_and_ids_str(selected_code_requests)}")
+            information_user.append(f"Files to be skipped are: {skip_files}")
 
         content_out: IContentOut = ContentOut()
         for information in information_user:
             logger.info(information)
         
         file_type: IFileType = None
-        match language_name.lower():
-            case 'c':
-                file_type = FileTypeCpp()
-            case 'c++':
-                file_type = FileTypeCpp()
-            case 'java':
-                file_type = FileTypeJava()
-            case 'python':
-                file_type = FileTypePython()
-            case 'shell':
-                file_type = FileTypeShell()
-            case 'typescript':
-                file_type = FileTypeTypescript()
+        if force_destination_language_name is None:
+            force_destination_language_name = language_name
+        if force_source_file_types is None and force_comment_string is None:
+            match language_name.lower():
+                case 'c':
+                    file_type = FileTypeCpp(force_destination_language_name, force_destination_file_type)
+                case 'c++':
+                    file_type = FileTypeCpp(force_destination_language_name, force_destination_file_type)
+                case 'java':
+                    file_type = FileTypeJava(force_destination_language_name, force_destination_file_type)
+                case 'python':
+                    file_type = FileTypePython(force_destination_language_name, force_destination_file_type)
+                case 'shell':
+                    file_type = FileTypeShell(force_destination_language_name, force_destination_file_type)
+                case 'typescript':
+                    file_type = FileTypeTypescript(force_destination_language_name, force_destination_file_type)
+                case 'plantuml':
+                    file_type = FileTypePlantUML(force_destination_language_name, force_destination_file_type)
+        else:
+            file_type = FileTypeAll(force_destination_language_name, force_destination_file_type, force_source_file_types, force_comment_string)
+
 
         llm_access: AbstractLLMAccess = LLMAccess(logger, model_name) if not simulate_calls_only \
             else LLMAccessSimulateCalls(logger, model_name)
 
-        GPT2Unittests(from_directory, to_directory, skip_files, logger, content_out, llm_utils, selected_code_requests, \
+        GPT2Unittests(from_directory, to_directory, skip_files, logger, content_out, llm_utils, selected_code_request, \
                 llm_access, language_name, file_type)
    
