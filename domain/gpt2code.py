@@ -67,9 +67,9 @@ class GPT2Unittests:
                 self.logger.debug(f'Skipping directory {current_dir}')
                 continue
             indent: str = ' ' * 4 * (level)
-            information: str = f'{self.file_type.get_comment_characters()} Analyzing {indent}{os.path.basename(root)}/'
+            information: str = f'Analyzing directory {indent}{os.path.basename(root)}/'
             generated_file_extension: str = self.file_type.get_generated_file_extension()
-            self.logger.info(f"***{os.path.basename(root)}***")
+            self.logger.info(f"Analyzing directory {indent}{os.path.basename(root)}")
             subindent = ' ' * 4 * (level + 1)
             for file_name in files:
                 full_file_name: str = f'{current_dir}{os.sep}{file_name}'
@@ -87,10 +87,9 @@ class GPT2Unittests:
                     
                     self.logger.info(f"Processing {full_file_name} into {to_file}.")
                     self.content_out.set_base_file_name(to_file)
-                    sub_information: str = f'{self.file_type.get_comment_characters()}  Analyzing {subindent}{full_file_name}'
-                    self.logger.info(sub_information)
-                    self.content_out.write(information)
-                    self.content_out.write(sub_information)
+                    sub_information: str = f'Analyzing file {subindent}{full_file_name}'
+                    self.content_out.write(f'{self.file_type.get_comment_characters()} {information}')
+                    self.content_out.write(f'{self.file_type.get_comment_characters()} {sub_information}')
 
                     file_content: List = []
                     # with open(from_file, 'rb') as f:

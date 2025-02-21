@@ -14,7 +14,7 @@ class LLMUtils:
                 'request': f"For each function please create unittests and ensure 100% code coverage related to the code you have. Do not create any unittests for any dependency",
                 'generated_file_extension': 'unittests'},
             {'request_name': 'Comments creation', 
-                'request': f"For all source code, please ensure a proper documentation of each function. Keep the initial code exacly as is, only document the whole code in detail.",
+                'request': f"For all source code, please ensure a proper documentation of each function. Keep the initial code exacly as is, only document the whole code in detail following Doxygen best practices.",
                 'generated_file_extension': 'comments'},
             {'request_name': 'Language best practices',
                 'request': f"Refactor each method following language best practices. Ensure that mathods have a proper name. Any change shall be associated with a comment explaining what was done within the code itself. Ensure method and variables have all a meaningfull name.",
