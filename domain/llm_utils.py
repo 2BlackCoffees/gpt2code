@@ -1,12 +1,27 @@
+"""
+@file LLMUtils.py
+@brief This module provides a class LLMUtils to handle external code requests and LLM parameters.
+@author [Your Name]
+@date [Today's Date]
+"""
+
 from typing import Dict, List
 import json
 from pprint import pprint, pformat
 from pathlib import Path
+
 class LLMUtils:
-    # In order to get purely Python code, we would need to define specific grammars on the server side:
-    # https://github.com/ggml-org/llama.cpp/blob/master/grammars/README.md 
-     
+    """
+    @class LLMUtils
+    @brief This class handles external code requests and LLM parameters.
+    """
+
     def __init__(self, external_file_code_requests: str, logger: any):
+        """
+        @brief Initializes the LLMUtils object.
+        @param external_file_code_requests The path to the external file containing code requests.
+        @param logger The logger object.
+        """
         self.logger = logger
         self.force_temperature: float = None
         self.force_top_p: float = None
@@ -32,14 +47,27 @@ class LLMUtils:
         self.external_code_llm_requests.extend(external_code_requests)
 
     def set_temperature(self, new_temperature: float) -> None:
+        """
+        @brief Sets the temperature for all LLM requests.
+        @param new_temperature The new temperature value.
+        """
         for request in self.external_code_llm_requests:
             request['temperature'] = new_temperature
 
     def set_top_p(self, new_top_p: float) -> None:
+        """
+        @brief Sets the top_p value for all LLM requests.
+        @param new_top_p The new top_p value.
+        """
         for request in self.external_code_llm_requests:
             request['top_p'] = new_top_p
 
     def __read_json(self, filename: str):
+        """
+        @brief Reads a JSON file and returns its contents.
+        @param filename The path to the JSON file.
+        @return The contents of the JSON file.
+        """
         path = Path(filename)
         if filename is not None and len(filename) > 0:
             if path.is_file():
@@ -52,6 +80,12 @@ class LLMUtils:
         return []
 
     def __get_all_requests(self, request_list: List, from_list: List = None):
+        """
+        @brief Returns all requests or a subset of requests based on the from_list parameter.
+        @param request_list The list of requests.
+        @param from_list The list of indices to filter the requests.
+        @return The list of requests.
+        """
         if from_list is not None and len(from_list) > 0:
             return_list: List = [ request_list[idx] for idx in from_list if idx < len(request_list) ]
             if len(return_list) > 0:
@@ -60,9 +94,20 @@ class LLMUtils:
 
     
     def get_all_code_llm_requests(self, from_list: List = None):
+        """
+        @brief Returns all code LLM requests or a subset of requests based on the from_list parameter.
+        @param from_list The list of indices to filter the requests.
+        @return The list of code LLM requests.
+        """
         return self.__get_all_requests(self.external_code_llm_requests, from_list)
     
     def __get_all_code_requests_and_ids(self, request_list: List, from_list: List = None):
+        """
+        @brief Returns all code requests and their indices or a subset of requests based on the from_list parameter.
+        @param request_list The list of requests.
+        @param from_list The list of indices to filter the requests.
+        @return The list of code requests and their indices.
+        """
         all_requests: List = []
         for idx, llm_request in enumerate(request_list):
             if from_list is None or idx in from_list:
@@ -70,9 +115,19 @@ class LLMUtils:
         return all_requests    
     
     def get_all_code_requests_and_ids(self, from_list: List = None):
+        """
+        @brief Returns all code requests and their indices or a subset of requests based on the from_list parameter.
+        @param from_list The list of indices to filter the requests.
+        @return The list of code requests and their indices.
+        """
         return self.__get_all_code_requests_and_ids(self.external_code_llm_requests, from_list)
     
     def code_requests_are_valid(self, from_list: List):
+        """
+        @brief Checks if the code requests are valid.
+        @param from_list The list of indices to check.
+        @return True if the code requests are valid, False otherwise.
+        """
         for code_request in from_list:
             if code_request < 0 or code_request >= len(self.external_code_llm_requests):
                 return False
@@ -80,15 +135,31 @@ class LLMUtils:
     
    
     def get_all_code_requests_and_ids_str(self, from_list: List = None, separator: str = ", "):
+        """
+        @brief Returns all code requests and their indices as a string.
+        @param from_list The list of indices to filter the requests.
+        @param separator The separator to use between requests.
+        @return The string of code requests and their indices.
+        """
         all_requests = self.get_all_code_requests_and_ids(from_list)
         return separator.join([f"{req['idx']}: {req['llm_request']}" for req in all_requests])
     
     def get_all_code_extensions(self, from_list: List = None) -> List:
+        """
+        @brief Returns all code extensions or a subset of extensions based on the from_list parameter.
+        @param from_list The list of indices to filter the extensions.
+        @return The list of code extensions.
+        """
         all_requests = self.get_all_code_requests_and_ids(from_list)
         return [f"{req['file_extension']}" for req in all_requests]
     
     @staticmethod
     def get_list_parameters(parameters):
+        """
+        @brief Returns a list of parameters.
+        @param parameters The parameters to convert to a list.
+        @return The list of parameters.
+        """
         parameter_list: List = []
         for parameter in parameters:
             if '-' in parameter:
@@ -101,10 +172,19 @@ class LLMUtils:
     
     @staticmethod
     def get_llm_instructions(language_name: str) -> str:
+        """
+        @brief Returns the LLM instructions for a given language.
+        @param language_name The name of the language.
+        @return The LLM instructions.
+        """
         return f"""[Consider following source code, understand it thoroughly {language_name}]"""
     
     @staticmethod
     def print_recommended_temperature_and_top_p(logger: any):
+        """
+        @brief Prints the recommended temperature and top_p values for different use cases.
+        @param logger The logger object.
+        """
         # Define the data
         data = {
             "Code Generation": {"temperature": 0.2, "top_p": 0.1, "description": "Generates code that adheres to established patterns and conventions. Output is more deterministic and focused. Useful for generating syntactically correct code."},

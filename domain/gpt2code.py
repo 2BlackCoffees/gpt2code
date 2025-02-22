@@ -1,3 +1,11 @@
+"""
+@file GPT2Unittests.py
+@brief This module contains the GPT2Unittests class, which is responsible for processing source files and generating output based on LLM requests.
+
+@author [Your Name]
+@date [Today's Date]
+"""
+
 import os
 import re
 import traceback
@@ -12,26 +20,66 @@ from domain.llm_utils import LLMUtils
 from domain.ifile_type import IFileType
 from domain.icontent_out import IContentOut
 
-class GPT2Unittests: 
-    def __init__(self, from_directory: str, to_directiry: str, files_to_skip: List,\
+class GPT2Unittests:
+    """
+    @class GPT2Unittests
+    @brief This class is responsible for processing source files and generating output based on LLM requests.
+
+    @param from_directory The directory to read source files from.
+    @param to_directory The directory to write output files to.
+    @param files_to_skip A list of files to skip during processing.
+    @param logger A logger instance for logging messages.
+    @param content_out An instance of IContentOut for writing output.
+    @param llm_utils An instance of LLMUtils for LLM-related utilities.
+    @param selected_code_request The selected code request to use.
+    @param llm_access An instance of AbstractLLMAccess for accessing LLM functionality.
+    @param source_language_name The name of the source language.
+    @param file_type An instance of IFileType for file type-related functionality.
+    @param force_full_output A flag to force full output.
+    """
+
+    def __init__(self, from_directory: str, to_directory: str, files_to_skip: List,\
                  logger: Logger, content_out: IContentOut, llm_utils: LLMUtils, \
-                 selected_code_request: int, llm_access: AbstractLLMAccess, source_language_name: str, file_type: IFileType):
+                 selected_code_request: int, llm_access: AbstractLLMAccess, source_language_name: str, file_type: IFileType, force_full_output: bool):
+        """
+        @brief Initializes the GPT2Unittests instance.
+
+        @param from_directory The directory to read source files from.
+        @param to_directory The directory to write output files to.
+        @param files_to_skip A list of files to skip during processing.
+        @param logger A logger instance for logging messages.
+        @param content_out An instance of IContentOut for writing output.
+        @param llm_utils An instance of LLMUtils for LLM-related utilities.
+        @param selected_code_request The selected code request to use.
+        @param llm_access An instance of AbstractLLMAccess for accessing LLM functionality.
+        @param source_language_name The name of the source language.
+        @param file_type An instance of IFileType for file type-related functionality.
+        @param force_full_output A flag to force full output.
+        """
         self.content_out = content_out
         self.logger = logger
         self.llm_utils = llm_utils
         self.from_directory: str = from_directory
-        self.to_directory: str = to_directiry
+        self.to_directory: str = to_directory
         self.files_to_skip = files_to_skip
         self.selected_code_request = selected_code_request
         self.llm_access = llm_access
         self.file_type = file_type
         self.source_language_name: str = source_language_name
         try:
-            self.__gpt2code()
+            self.__gpt2code(force_full_output)
         except Exception as err:                    
             self.logger.warning(f"Caught exception {err=}\n {type(err)=}\n {traceback.print_exc()}\n Leaving application.")
 
-    def __reformat_response(self, response: str) -> str:
+    def __reformat_response(self, response: str, force_full_output: bool) -> str:
+        """
+        @brief Reformat the response from the LLM.
+
+        @param response The response from the LLM.
+        @param force_full_output A flag to force full output.
+
+        @return The reformatted response.
+        """
         in_code: bool = False
         new_response: List = []
         in_code_str: str = f'```{self.file_type.get_destination_language_name()}'
@@ -39,7 +87,8 @@ class GPT2Unittests:
             if line == '```':
                 in_code = False
             if not in_code:
-                new_response.append(self.file_type.get_comment_characters() + ' ' + line)
+                if force_full_output: 
+                    new_response.append(self.file_type.get_comment_characters() + ' ' + line)
             else:
                 new_response.append(line)
 
@@ -48,17 +97,25 @@ class GPT2Unittests:
 
         return '\n'.join(new_response)
 
-    def __send_llm_requests_and_expand_output(self, content_to_check: List) -> None:
+    def __send_llm_requests_and_expand_output(self, content_to_check: List, force_full_output: bool) -> None:
+        """
+        @brief Send LLM requests and expand the output.
 
-            result = self.llm_access.check(content_to_check, self.source_language_name)
+        @param content_to_check The content to check.
+        @param force_full_output A flag to force full output.
+        """
+        result = self.llm_access.check(content_to_check, self.source_language_name)
 
-            for response in result:
-                self.content_out.write(f"{self.file_type.get_comment_characters()} {response['request_name']}")
-                
+        for response in result:
+            #self.content_out.write(f"{self.file_type.get_comment_characters()} {response['request_name']}")
+            self.content_out.write(self.__reformat_response(response['response'], force_full_output))
 
-                self.content_out.write(self.__reformat_response(response['response']))
+    def __gpt2code(self, force_full_output: bool):
+        """
+        @brief Process the source files and generate output based on LLM requests.
 
-    def __gpt2code(self):
+        @param force_full_output A flag to force full output.
+        """
         directories_to_skip = [".git"]
         for root, _, files in os.walk(self.from_directory):
             level: int = root.replace(self.from_directory, '').count(os.sep)
@@ -87,9 +144,9 @@ class GPT2Unittests:
                     
                     self.logger.info(f"Processing {full_file_name} into {to_file}.")
                     self.content_out.set_base_file_name(to_file)
-                    sub_information: str = f'Analyzing file {subindent}{full_file_name}'
-                    self.content_out.write(f'{self.file_type.get_comment_characters()} {information}')
-                    self.content_out.write(f'{self.file_type.get_comment_characters()} {sub_information}')
+                    #sub_information: str = f'Analyzing file {subindent}{full_file_name}'
+                    #self.content_out.write(f'{self.file_type.get_comment_characters()} {information}')
+                    #self.content_out.write(f'{self.file_type.get_comment_characters()} {sub_information}')
 
                     file_content: List = []
                     # with open(from_file, 'rb') as f:
@@ -100,11 +157,7 @@ class GPT2Unittests:
 
                     checker: IRequests = CodeChecker(self.llm_utils, self.selected_code_request, f' ({file_name})')
                     self.llm_access.set_checker(checker)
-                    self.__send_llm_requests_and_expand_output(file_content)
+                    self.__send_llm_requests_and_expand_output(file_content, force_full_output)
 
                 else:
                     self.logger.debug(f"Skipping file {full_file_name} with extension {file_extension}.")
-
-
-
-        
