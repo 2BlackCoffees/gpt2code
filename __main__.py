@@ -18,7 +18,7 @@ logging_level = logging.INFO
 
 program_name = os.path.basename(sys.argv[0])
 logger = logging.getLogger(f'loggername_{program_name}')
-logging.basicConfig(encoding='utf-8', level=logging_level)
+logging.basicConfig(encoding='utf-8', level=logging_level, format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 llm_utils = LLMUtils(os.getenv("GPT2CODE_EXTERNAL_FILE_CODE_REQUESTS", default=""), logger)
 all_code_llm_requests: List = [ idx for idx in range(len(llm_utils.get_all_code_llm_requests())) ]
@@ -35,9 +35,15 @@ parser.add_argument('--force_destination_file_type', type=str, help=f'Specify so
 parser.add_argument('--force_comment_string', type=str, help=f'Specify the string to be used for comments')
 parser.add_argument('--force_destination_language_name', type=str, help=f'Specify the destination language name')
 parser.add_argument('--debug', action="store_true", help='Set logging to debug')
+parser.add_argument('--show_temperature_recommendations', action="store_true", help='Display values for various use cases')
 parser.add_argument('--simulate_calls_only', action="store_true", help=f'Do not perform the calls to LLM: used for debugging purpose.')
+parser.add_argument('--force_top_p', action="store_true", help=f'Increases diversity from various probable outputs in results.')
+parser.add_argument('--force_temperature', action="store_true", help=f'Higher temperature increses non sense and creativity while lower yields to focused and predictable results.')
 args = parser.parse_args()
 
+if args.show_temperature_recommendations:
+    LLMUtils.print_recommended_temperature_and_top_p(logger)
+    sys.exit(0)
 
 if args.debug:
     logging_level = logging.DEBUG
@@ -45,6 +51,10 @@ if args.code_request:
     selected_code_request = args.code_request
 if args.model_name:
     model_name = args.model_name
+if args.force_temperature:
+    llm_utils.set_temperature(args.force_temperature)
+if args.force_top_p:
+    llm_utils.set_top_p(args.force_top_p)
 
 if not llm_utils.code_requests_are_valid([selected_code_request]):
     logger.error(f'The selected code {selected_code_request} is not valid. Please use the help to see valid code requests: python {program_name} -h.')

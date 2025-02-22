@@ -22,7 +22,7 @@ class AbstractLLMAccess(ABC):
         """
         """
     @abstractmethod
-    def _send_request_plain(self, messages: List, request_name: str) -> str: 
+    def _send_request_plain(self, messages: List, request_name: str, temperature: float, top_p: float) -> str: 
         """
         """
 
@@ -35,9 +35,10 @@ class AbstractLLMAccess(ABC):
         request_input: Dict = {
             'request_name': request['request_name'],
             'request_llm': request['request'],
-            'generated_file_extension': request['generated_file_extension'],
             'error_information': error_information,
-            'file_content': file_content
+            'file_content': file_content,
+            'temperature': request[ "temperature"], 
+            'top_p': request["top_p"]
         }  
 
         return self._prepare_and_send_request(request_input, language_name)

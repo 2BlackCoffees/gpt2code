@@ -8,27 +8,36 @@ class LLMUtils:
      
     def __init__(self, external_file_code_requests: str, logger: any):
         self.logger = logger
+        self.force_temperature: float = None
+        self.force_top_p: float = None
         external_code_requests: List = self.__read_json(external_file_code_requests)
         self.external_code_llm_requests = [
             {'request_name': 'Create Unittests', 
                 'request': f"For each function please create unittests and ensure 100% code coverage related to the code you have. Do not create any unittests for any dependency",
-                'generated_file_extension': 'unittests'},
+                "temperature": 0.2, "top_p": 0.1},
             {'request_name': 'Comments creation', 
                 'request': f"For all source code, please ensure a proper documentation of each function. Keep the initial code exacly as is, only document the whole code in detail following Doxygen best practices.",
-                'generated_file_extension': 'comments'},
+                "temperature": 0.3, "top_p": 0.2},
             {'request_name': 'Language best practices',
                 'request': f"Refactor each method following language best practices. Ensure that mathods have a proper name. Any change shall be associated with a comment explaining what was done within the code itself. Ensure method and variables have all a meaningfull name.",
-                'generated_file_extension': 'language-best-practices'},
+                "temperature": 0.2, "top_p": 0.1},
             {'request_name': 'OOP Best practices',
                 'request': f"Refactor all the code following OOP best practices. Please add comments as TODO for all parts where changes need to be done but you are lacking information from dependencies.",
-                'generated_file_extension': 'oop-best-practices'},
+                "temperature": 0.2, "top_p": 0.1},
             {'request_name': 'UML Class diagrams reverse engineering',
                 'request': f"We need to have the whole file reversed engineer as UML class diagram following plantuml syntax.",
-                'generated_file_extension': 'uml-reverse-engineering'},
+                "temperature": 0.2, "top_p": 0.1},
 
         ]
         self.external_code_llm_requests.extend(external_code_requests)
 
+    def set_temperature(self, new_temperature: float) -> None:
+        for request in self.external_code_llm_requests:
+            request['temperature'] = new_temperature
+
+    def set_top_p(self, new_top_p: float) -> None:
+        for request in self.external_code_llm_requests:
+            request['top_p'] = new_top_p
 
     def __read_json(self, filename: str):
         path = Path(filename)
@@ -57,7 +66,7 @@ class LLMUtils:
         all_requests: List = []
         for idx, llm_request in enumerate(request_list):
             if from_list is None or idx in from_list:
-                all_requests.append({'idx': idx, 'llm_request': llm_request['request_name'], 'file_extension': llm_request['generated_file_extension']})
+                all_requests.append({'idx': idx, 'llm_request': llm_request['request_name']})
         return all_requests    
     
     def get_all_code_requests_and_ids(self, from_list: List = None):
@@ -93,3 +102,23 @@ class LLMUtils:
     @staticmethod
     def get_llm_instructions(language_name: str) -> str:
         return f"""[Consider following source code, understand it thoroughly {language_name}]"""
+    
+    @staticmethod
+    def print_recommended_temperature_and_top_p(logger: any):
+        # Define the data
+        data = {
+            "Code Generation": {"temperature": 0.2, "top_p": 0.1, "description": "Generates code that adheres to established patterns and conventions. Output is more deterministic and focused. Useful for generating syntactically correct code."},
+            "Creative Writing": {"temperature": 0.7, "top_p": 0.8, "description": "Generates creative and diverse text for storytelling. Output is more exploratory and less constrained by patterns."},
+            "Chatbot Responses": {"temperature": 0.5, "top_p": 0.5, "description": "Generates conversational responses that balance coherence and diversity. Output is more natural and engaging."},
+            "Code Comment Generation": {"temperature": 0.3, "top_p": 0.2, "description": "Generates code comments that are more likely to be concise and relevant. Output is more deterministic and adheres to conventions."},
+            "Data Analysis Scripting": {"temperature": 0.2, "top_p": 0.1, "description": "Generates data analysis scripts that are more likely to be correct and efficient. Output is more deterministic and focused."},
+            "Exploratory Code Writing": {"temperature": 0.6, "top_p": 0.7, "description": "Generates code that explores alternative solutions and creative approaches. Output is less constrained by established patterns."}
+        }
+
+        # Print the headers
+        logger.info(f"{'Use Case':^30} | {'Temperature':^10} | {'Top P':^5} | {'Description':^100}")
+        logger.info("-" * 150)
+
+        # Print the data
+        for use_case, params in data.items():
+            logger.info(f"{use_case:^30} | {params['temperature']:^10.1f} | {params['top_p']:^5.1f} | {params['description']:^100}")

@@ -9,11 +9,12 @@ from domain.allm_access import AbstractLLMAccess, ContextWindowExceededError
 
 class LLMAccess(AbstractLLMAccess):
 
+    api_key=os.getenv("OPENAI_API_KEY", "")
     client = OpenAI(
         base_url=os.getenv("OPENAI_BASE_URL"),
         # base_url="https://api.openai.com/v1"
-        # api_key=os.getenv("OPENAI_API_KEY") is default
-    )
+        api_key=api_key
+    ) if api_key is not None and len(api_key) > 0 else None 
 
     def _get_request_llm_to_string(self, request_input: Dict):
         request_llm: str = ""
@@ -41,16 +42,19 @@ class LLMAccess(AbstractLLMAccess):
         llm_requests, request_name = self._create_message(file_content, request_input["request_name"], language_name)
         request_names.append(request_name)
         llm_requests.append({"role": "user", "content": self._get_request_llm_to_string(request_input)})
+        temperature: float = request_input['temperature'] if 'temperature' in request_input else 0.2
+        top_p: float = request_input['top_p'] if 'top_p' in request_input else 0.1
+        return llm_requests, request_names, temperature, top_p
 
-        return llm_requests, request_names
-
-    def _send_request_plain(self, messages: List, generated_file_extension: str, request_name: str) -> str: 
+    def _send_request_plain(self, messages: List, request_name: str, temperature: float, top_p: float) -> str: 
         return_message: str = None
 
         self.logger.info(f'Requesting {request_name}')
         review = self.client.chat.completions.create(
             model=self.model_name,
-            messages=messages
+            messages=messages,
+            temperature=temperature,
+            top_p=top_p
         )
 
         return_message = re.sub(r'\'\s+.*refusal=.*,.*role=.*\)', '', re.sub(r'ChatCompletionMessage\(content=', '', str(review.choices[0].message.content.strip())))
@@ -58,17 +62,16 @@ class LLMAccess(AbstractLLMAccess):
         return {
             'request_name': request_name,
             'response': return_message,
-            'generated_file_extension': generated_file_extension
         }
 
-    def _send_request(self, messages: List, generated_file_extension: str, error_information: str, request_name: str) -> str:
+    def _send_request(self, messages: List, error_information: str, request_name: str, temperature: float, top_p: float) -> str:
         openai_response: bool = False
         sleep_time: int = 10
         response: Dict = {}
 
         while not openai_response:
             try:
-                response = self._send_request_plain(messages, generated_file_extension, request_name)
+                response = self._send_request_plain(messages, request_name, temperature, top_p)
                 openai_response = True
             except Exception as err:                    
                 self.logger.warning(f"{error_information}: {request_name}: Caught exception {err=}, {type(err)=}\nMessage: {pformat(messages)}")
@@ -87,10 +90,11 @@ class LLMAccess(AbstractLLMAccess):
         file_content: str = request_input['file_content'] 
         error_information: str = request_input['error_information'] 
 
-        llm_requests, request_names = self._create_messages(request_input, file_content, language_name)
-        return_value.append(self._send_request(llm_requests, request_input['generated_file_extension'], \
+        llm_requests, request_names, temperature, top_p = self._create_messages(request_input, file_content, language_name)
+        return_value.append(self._send_request(llm_requests, \
                                                 error_information, \
-                                                " & ".join(request_names)))
+                                                " & ".join(request_names),
+                                                temperature, top_p))
         return return_value
     
 
