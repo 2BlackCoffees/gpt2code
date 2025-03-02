@@ -13,6 +13,7 @@ import re
 import os
 from domain.llm_utils import LLMUtils
 from domain.allm_access import AbstractLLMAccess, ContextWindowExceededError
+from pprint import pprint
 
 class LLMAccess(AbstractLLMAccess):
     """
@@ -175,10 +176,10 @@ class LLMAccess(AbstractLLMAccess):
             List: A list containing the response from the API.
         """
         return_value: List = []
-        file_content: str = request_input['file_content'] 
-        error_information: str = request_input['error_information'] 
+        file_content: str = request_input[0]['file_content'] 
+        error_information: str = request_input[0]['error_information'] 
 
-        llm_requests, request_names, temperature, top_p = self._create_messages(request_input, file_content, language_name)
+        llm_requests, request_names, temperature, top_p = self._create_messages(request_input[0], file_content, language_name)
         return_value.append(self._send_request(llm_requests, \
                                                 error_information, \
                                                 " & ".join(request_names),
