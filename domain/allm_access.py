@@ -7,11 +7,11 @@ implementations to be used. It also defines a custom exception for context windo
 
 from abc import abstractmethod, ABC
 from typing import List, Dict
-import json
 from logging import Logger
-from domain.ichecker import IRequests
+from domain.ichecker import IRequestHandler
 from pprint import pprint
 
+# Custom exception for context window exceeded errors
 class ContextWindowExceededError(Exception):
     """
     Custom exception for context window exceeded errors.
@@ -20,6 +20,7 @@ class ContextWindowExceededError(Exception):
     """
     pass
 
+# Abstract base class for accessing Large Language Models (LLMs)
 class AbstractLLMAccess(ABC):
     """
     Abstract base class for accessing Large Language Models (LLMs).
@@ -33,6 +34,7 @@ class AbstractLLMAccess(ABC):
         model_name (str): The name of the LLM model being used.
     """
 
+    # Initialize the AbstractLLMAccess instance
     def __init__(self, logger: Logger, model_name: str):
         """
         Initializes the AbstractLLMAccess instance.
@@ -41,21 +43,26 @@ class AbstractLLMAccess(ABC):
             logger (Logger): The logger instance used for logging.
             model_name (str): The name of the LLM model being used.
         """
+        # Set the logger instance
         self.logger = logger
-        self.checker = None
+        # Initialize the checker instance to None
+        self.request_handler: IRequestHandler = None
+        # Set the model name
         self.model_name = model_name  # "llama3-70b"  # or use gpt-4o-mini, gpt-4o as per access requested
 
-    def set_checker(self, checker: IRequests):
+    # Set the checker instance
+    def set_request_checker(self, request_handler: IRequestHandler):
         """
         Sets the checker instance used for getting requests and error information.
 
         Args:
             checker (IRequests): The checker instance to be used.
         """
-        self.checker = checker
+        self.request_handler = request_handler
 
+    # Prepare and send a request to the LLM
     @abstractmethod
-    def _prepare_and_send_request(self, request_inputs: List, language_name: str) -> List:
+    def prepare_and_send_llm_request(self, request_inputs: List, language_name: str) -> List:
         """
         Prepares and sends a request to the LLM.
 
@@ -71,7 +78,7 @@ class AbstractLLMAccess(ABC):
         pass
 
     @abstractmethod
-    def _send_request_plain(self, messages: List, request_name: str, temperature: float, top_p: float) -> str:
+    def send_plain_request(self, messages: List, request_name: str, temperature: float, top_p: float) -> str:
         """
         Sends a plain request to the LLM.
 
@@ -86,6 +93,7 @@ class AbstractLLMAccess(ABC):
         Returns:
             str: The response from the LLM.
         """
+        # Renamed method to send_plain_llm_request for better clarity
         pass
 
     def check(self, file_content: str, language_name: str) -> List:
@@ -93,7 +101,7 @@ class AbstractLLMAccess(ABC):
         Checks the file content using the LLM.
 
         This method uses the checker instance to get the request and error information,
-        prepares the request input data, and then calls the _prepare_and_send_request method
+        prepares the request input data, and then calls the prepare_and_send_llm_request method
         to send the request to the LLM.
 
         Args:
@@ -106,11 +114,16 @@ class AbstractLLMAccess(ABC):
         Raises:
             Exception: If the checker instance is not properly defined.
         """
-        if self.checker is None:
+        # Renamed method to check_file_content for better clarity
+        if self.request_handler is None:
+            # Raise an exception if the checker instance is not defined
             raise Exception("Internal error: Checker was not properly defined!") 
-        request: Dict = self.checker.get_request() 
-        error_information: str = self.checker.get_error_information() 
+        # Get the request from the checker instance
+        request: Dict = self.request_handler.retrieve_request_data() 
+        # Get the error information from the checker instance
+        error_information: str = self.request_handler.get_error_details() 
 
+        # Prepare the request input data
         request_input: Dict = {
             'request_name': request['request_name'],
             'request_llm': request['request'],
@@ -120,4 +133,5 @@ class AbstractLLMAccess(ABC):
             'top_p': request["top_p"]
         }  
 
-        return self._prepare_and_send_request([request_input], language_name)
+        # Call the prepare_and_send_llm_request method to send the request to the LLM
+        return self.prepare_and_send_llm_request([request_input], language_name)

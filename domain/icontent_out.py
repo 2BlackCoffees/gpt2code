@@ -6,36 +6,33 @@ This module defines the IContentOut abstract base class, which provides a common
 """
 
 from abc import ABC, abstractmethod
-from typing import List
 
 class IContentOut(ABC):
     """
     @class IContentOut
     @brief Abstract base class for content output operations.
 
-    This class defines the interface for writing content to output files. It provides two abstract methods: set_base_file_name and write.
+    This class defines the interface for writing content to output files. 
     """
 
     @abstractmethod
-    def set_base_file_name(self, out_file_name: str) -> None:
+    def configure_output_file(self, output_file_name: str) -> None:
         """
-        @brief Sets the base file name for the output file.
+        @brief Configures the output file by setting its base name.
 
-        @param out_file_name The base file name for the output file.
+        @param output_file_name The base name for the output file.
         @return None
         @note This method must be implemented by any concrete subclass of IContentOut.
         """
-        """
-        """
+        pass
 
     @abstractmethod
-    def write(self, content: str) -> None:
+    def write_content_to_file(self, content_to_write: str) -> None:
         """
-        @brief Writes content to the output file.
+        @brief Writes the provided content to the configured output file.
 
-        @param content The content to be written to the output file.
+        @param content_to_write The content to be written to the output file.
         @return None
         @note This method must be implemented by any concrete subclass of IContentOut.
         """
-        """
-        """
+        pass

@@ -1,6 +1,6 @@
 """
 @file IRequests.py
-@brief This module contains the abstract base class IRequests and its concrete implementation CodeChecker.
+@brief This module contains the abstract base class IRequestHandler and its concrete implementation CodeCheckerRequestHandler.
 @details It provides a framework for handling requests and retrieving error information.
 """
 
@@ -9,49 +9,55 @@ from typing import List, Dict
 from domain.llm_utils import LLMUtils
 from pprint import pprint, pformat
 
-class IRequests(ABC):
+class IRequestHandler(ABC):
     """
-    @class IRequests
+    @class IRequestHandler
     @brief Abstract base class for handling requests.
     @details This class provides a basic structure for handling requests and retrieving error information.
     """
-    def __init__(self, llm_utils: LLMUtils, request: int,  error_information: str):
+    def __init__(self, llm_utilities: LLMUtils, request_id: int, error_details: str):
         """
-        @brief Constructor for the IRequests class.
-        @param llm_utils An instance of LLMUtils.
-        @param request The request ID.
-        @param error_information The error information associated with the request.
+        @brief Constructor for the IRequestHandler class.
+        @param llm_utilities An instance of LLMUtils.
+        @param request_id The request ID.
+        @param error_details The error details associated with the request.
         """
-        self.llm_utils = llm_utils
-        self.request = request
-        self.error_information = error_information
+
+        self.llm_utilities = llm_utilities
+        self.request_id = request_id
+        self.error_details = error_details
 
     @abstractmethod
-    def get_request(self) -> Dict:
+    def retrieve_request_data(self) -> Dict:
         """
-        @brief Abstract method to retrieve the request.
+        @brief Abstract method to retrieve the request data.
         @return A dictionary containing the request information.
-        @note This method must be implemented by any concrete subclass of IRequests.
+        @note This method must be implemented by any concrete subclass of IRequestHandler.
         """
 
-    def get_error_information(self) -> str:
+    def get_error_details(self) -> str:
         """
-        @brief Method to retrieve the error information associated with the request.
-        @return The error information as a string.
+        @brief Method to retrieve the error details associated with the request.
+        @return The error details as a string.
         """
-        return self.error_information 
+        return self.error_details 
 
-class CodeChecker(IRequests):
+class CodeCheckerRequestHandler(IRequestHandler):
     """
-    @class CodeChecker
-    @brief Concrete implementation of the IRequests class for code checking.
+    @class CodeCheckerRequestHandler
+    @brief Concrete implementation of the IRequestHandler class for code checking requests.
     @details This class provides a specific implementation for handling code checking requests.
     """
-    def get_request(self) -> Dict:
+    def retrieve_request_data(self) -> Dict:
         """
-        @brief Method to retrieve the code checking request.
+        @brief Method to retrieve the code checking request data.
         @return A dictionary containing the code checking request information.
-        @details This method uses the LLMUtils instance to retrieve the code checking request information.
+        @details This method uses the LLMUtilities instance to retrieve the code checking request information.
         """
-        list_value: List = self.llm_utils.get_all_code_llm_requests([self.request])
-        return list_value[0]
+
+        request_data_list: List = self.llm_utilities.get_all_code_llm_requests([self.request_id])
+
+        if request_data_list and len(request_data_list) > 0:
+            return request_data_list[0]
+        else:
+            raise ValueError("No request data found")
