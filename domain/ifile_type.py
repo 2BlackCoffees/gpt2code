@@ -23,7 +23,7 @@ class FileTypeInterface:
     @param source_file_extensions A list of source file extensions. Defaults to None.
     @param comment_string The comment string. Defaults to None.
     """
-    def __init__(self, destination_language_name: str, destination_file_extension: str, source_file_extensions: List[str] = None, comment_string: str = None):
+    def __init__(self, destination_language_name: str, destination_file_extension: str, comment_string: str = None, source_file_extensions: List[str] = None):
         """
         @brief Initializes the FileTypeInterface object.
         
@@ -64,13 +64,16 @@ class FileTypeInterface:
         """
         return self._destination_language_name
     
+    def _default_comment_characters(self) -> str:
+        return ""
+    
     def get_comment_characters(self) -> str:
         """
         @brief Gets the comment characters.
         
         @return The comment characters. If comment_string is None, returns an empty string, meaning no comment character.
         """
-        return self._comment_string if self._comment_string is not None else ""
+        return self._comment_string if self._comment_string is not None else self._default_comment_characters()
 
     def get_generated_file_extension(self) -> str:
         """

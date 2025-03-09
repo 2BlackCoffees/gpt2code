@@ -24,7 +24,7 @@ class PythonFileType(FileTypeInterface):
         """
         return [ 'py$' ]
 
-    def get_comment_characters(self) -> str:
+    def _default_comment_characters(self) -> str:
         """
         Gets the comment characters for Python files.
 
@@ -47,7 +47,7 @@ class CppFileType(FileTypeInterface):
         """
         return [ '[ch][xp\\+]*$' ]
 
-    def get_comment_characters(self) -> str:
+    def _default_comment_characters(self) -> str:
         """
         Gets the comment characters for C++ files.
 
@@ -72,7 +72,7 @@ class JavaFileType(FileTypeInterface):
 
         return [ 'java$' ]
 
-    def get_comment_characters(self) -> str:
+    def _default_comment_characters(self) -> str:
         """
         Gets the comment characters for Java files.
 
@@ -97,7 +97,7 @@ class ShellFileType(FileTypeInterface):
 
         return [ '[ckz]{0,1}sh$' ]
 
-    def get_comment_characters(self) -> str:
+    def _default_comment_characters(self) -> str:
         """
         Gets the comment characters for Shell files.
 
@@ -122,7 +122,7 @@ class TypescriptFileType(FileTypeInterface):
 
         return [ '[tj]s$' ]
 
-    def get_comment_characters(self) -> str:
+    def _default_comment_characters(self) -> str:
         """
         Gets the comment characters for Typescript files.
 
@@ -167,7 +167,7 @@ class PlantUMLFileType(FileTypeInterface):
         """
         return self._get_raw_source_file_extensions()
 
-    def get_comment_characters(self) -> str:
+    def _default_comment_characters(self) -> str:
         """
         Gets the comment characters for PlantUML files.
 
@@ -197,14 +197,14 @@ class AllFileType(FileTypeInterface):
         """
         Gets the source file extensions for all files.
 
-        If force_source_file_types is not specified, this method returns a list containing a regular expression matching all file extensions.
+        If _source_file_extensions is not specified, this method returns a list containing a regular expression matching all file extensions.
 
         @return A list of regular expressions matching file extensions.
         """
-        if self.force_source_file_types is None or len(self.force_source_file_types) == 0:
-            # If force_source_file_types is not specified, return a list containing a regular expression matching all file extensions
+        if self._source_file_extensions is None or len(self._source_file_extensions) == 0:
+            # If _source_file_extensions is not specified, return a list containing a regular expression matching all file extensions
             return ['.*']
-        return self.force_source_file_types
+        return self._source_file_extensions
 
     def get_generated_file_extension(self) -> str:
         """
@@ -216,4 +216,4 @@ class AllFileType(FileTypeInterface):
         @return The generated file extension for all files.
         """
 
-        return f'.{self.force_destination_file_type}' if self.force_destination_file_type is not None else '.md'
+        return f'.{self._destination_file_extension}' if self._destination_file_extension is not None else '.md'

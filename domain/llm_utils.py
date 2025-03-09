@@ -3,7 +3,7 @@
 @brief This module provides a class LLMUtils to handle external code requests and LLM parameters.
 """
 
-from typing import List
+from typing import List, Dict
 import json
 from pprint import pprint, pformat
 from pathlib import Path
@@ -26,23 +26,48 @@ class LLMUtils:
         self.force_top_p: float = None
         
         external_code_requests: List = self.read_json_file(external_file_code_requests_path)
-        
+       
         self.external_code_llm_requests = [
-            {'request_name': 'Create Unittests', 
+            {   'request_name': 'Create Unittests', 
                 'request': f"For each function please create unittests and ensure 100% code coverage related to the code you have. Do not create any unittests for any dependency",
-                "temperature": 0.2, "top_p": 0.1},
-            {'request_name': 'Comments creation', 
+                "temperature": 0.2, 
+                "top_p": 0.1,
+                "forced_destination_file_type": None,
+                "generate_full_output": False
+
+            },
+            {   'request_name': 'Comments creation', 
                 'request': f"For all source code, please ensure a proper documentation of each function. Keep the initial code exacly as is, only document the whole code in detail following Doxygen best practices.",
-                "temperature": 0.3, "top_p": 0.2},
-            {'request_name': 'Language best practices',
+                "temperature": 0.3, 
+                "top_p": 0.2,
+                "generate_full_output": False
+            },
+            {   'request_name': 'Review comments',
+                'request': f"Please check if the Doxygen documentation fits with the code semantic semantic. For minor issues or errors, reply the word 'Acceptable'. For good documentation, reply the word 'OK'. However if you find serious errors in the documentation, please provide details and suggestion together with the name of the method, class, variable and line numbers. ",
+                "temperature": 0.1, 
+                "top_p": 0.2,
+                "forced_destination_file_type": "md",
+                "generate_full_output": True,
+                "force_comment_caracter": ""
+            },
+            {   'request_name': 'Language best practices',
                 'request': f"Refactor each method following language best practices. Ensure that mathods have a proper name. Any change shall be associated with a comment explaining what was done within the code itself. Ensure method and variables have all a meaningfull name.",
-                "temperature": 0.2, "top_p": 0.1},
-            {'request_name': 'OOP Best practices',
+                "temperature": 0.2, 
+                "top_p": 0.1,
+                "generate_full_output": False
+            },
+            {   'request_name': 'OOP Best practices',
                 'request': f"Refactor all the code following OOP best practices. Please add comments as TODO for all parts where changes need to be done but you are lacking information from dependencies.",
-                "temperature": 0.2, "top_p": 0.1},
-            {'request_name': 'UML Class diagrams reverse engineering',
+                "temperature": 0.2, 
+                "top_p": 0.1,
+                "generate_full_output": False
+            },
+            {   'request_name': 'UML Class diagrams reverse engineering',
                 'request': f"We need to have the whole file reversed engineer as UML class diagram following plantuml syntax.",
-                "temperature": 0.2, "top_p": 0.1},
+                "temperature": 0.2, 
+                "top_p": 0.1,
+                "generate_full_output": False
+            },
 
         ]
 
@@ -124,6 +149,66 @@ class LLMUtils:
                 all_requests.append({'idx': idx, 'llm_request': llm_request['request_name']})
         return all_requests    
     
+    def _get_parameter_value_from_request(self, parameter_name: str, selected_code_request: int):
+        """
+        @brief Provide the forced file type extension  according to the LLM request and selected language.
+        @param selected_code_request The id of the request.
+        @return The forced file type for the destination: it will be None unless specifically required from the request.
+        """
+        for idx, llm_request in enumerate(self.external_code_llm_requests):
+
+            if idx == selected_code_request:
+                if parameter_name in llm_request:
+                    return llm_request[parameter_name]
+                break
+        return None    
+
+    def get_forced_destination_file_type(self, selected_code_request: int):
+        """
+        @brief Provide the forced file type extension  according to the LLM request and selected language.
+        @param selected_code_request The id of the request.
+        @return The forced file type for the destination: it will be None unless specifically required from the request.
+        """
+        return self._get_parameter_value_from_request('forced_destination_file_type', selected_code_request)
+    
+    def get_generate_full_output(self, selected_code_request: int):
+        """
+        @brief Informs whether full output is requested.
+        @param selected_code_request The id of the request.
+        @return This comment should be caught: The forced file type for the destination: it will be None unless specifically required from the request.
+        """
+        generate_full_output: bool = self._get_parameter_value_from_request('generate_full_output', selected_code_request)
+        if generate_full_output is not None:
+            return generate_full_output
+        return False
+    
+    def get_force_comment_caracter(self, selected_code_request: int):
+        """
+        @brief Informs whether full output is requested.
+        @param selected_code_request The id of the request.
+        @return This comment should be caught: The forced file type for the destination: it will be None unless specifically required from the request.
+        """
+        force_comment_caracter: bool = self._get_parameter_value_from_request('force_comment_caracter', selected_code_request)
+        if force_comment_caracter is not None:
+            return force_comment_caracter
+        return None
+    
+    def get_dict_requestid_request_name(self, selecteted_request: int):
+        """
+        @brief Returns all code requests and their indices or a subset of requests based on the filter_request_indices parameter.
+        @param filter_request_indices The list of indices to filter the requests.
+        @return The list of code requests and their indices.
+        """
+
+        dict_it_req_name: Dict = {}
+        for idx, llm_request in enumerate(self.external_code_llm_requests):
+
+            # Check if filter_request_indices is not enabled or if the current index is in filter_request_indices
+            if idx == selecteted_request:
+                dict_it_req_name[idx] = llm_request['request_name']
+                break
+        return dict_it_req_name    
+    
     # Renamed method to make it more descriptive
     def code_requests_are_valid(self, filter_request_indices: List):
         """
@@ -200,12 +285,30 @@ class LLMUtils:
         """
         # Define the data
         data = {
-            "Code Generation": {"temperature": 0.2, "top_p": 0.1, "description": "Generates code that adheres to established patterns and conventions. Output is more deterministic and focused. Useful for generating syntactically correct code."},
-            "Creative Writing": {"temperature": 0.7, "top_p": 0.8, "description": "Generates creative and diverse text for storytelling. Output is more exploratory and less constrained by patterns."},
-            "Chatbot Responses": {"temperature": 0.5, "top_p": 0.5, "description": "Generates conversational responses that balance coherence and diversity. Output is more natural and engaging."},
-            "Code Comment Generation": {"temperature": 0.3, "top_p": 0.2, "description": "Generates code comments that are more likely to be concise and relevant. Output is more deterministic and adheres to conventions."},
-            "Data Analysis Scripting": {"temperature": 0.2, "top_p": 0.1, "description": "Generates data analysis scripts that are more likely to be correct and efficient. Output is more deterministic and focused."},
-            "Exploratory Code Writing": {"temperature": 0.6, "top_p": 0.7, "description": "Generates code that explores alternative solutions and creative approaches. Output is less constrained by established patterns."}
+            "Code Generation": {
+                "temperature": 0.2, "top_p": 0.1, 
+                "description": "Generates code that adheres to established patterns and conventions. Output is more deterministic and focused. Useful for generating syntactically correct code."
+            },
+            "Creative Writing": {
+                "temperature": 0.7, "top_p": 0.8, 
+                "description": "Generates creative and diverse text for storytelling. Output is more exploratory and less constrained by patterns."
+            },
+            "Chatbot Responses": {
+                "temperature": 0.5, "top_p": 0.5, 
+                "description": "Generates conversational responses that balance coherence and diversity. Output is more natural and engaging."
+            },
+            "Code Comment Generation": {
+                "temperature": 0.3, "top_p": 0.2, 
+                "description": "Generates code comments that are more likely to be concise and relevant. Output is more deterministic and adheres to conventions."
+            },
+            "Data Analysis Scripting": {
+                "temperature": 0.2, "top_p": 0.1, 
+                "description": "Generates data analysis scripts that are more likely to be correct and efficient. Output is more deterministic and focused."
+            },
+            "Exploratory Code Writing": {
+                "temperature": 0.6, "top_p": 0.7, 
+                "description": "Generates code that explores alternative solutions and creative approaches. Output is less constrained by established patterns."
+            }
         }
 
         # Print the headers

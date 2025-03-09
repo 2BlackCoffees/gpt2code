@@ -63,7 +63,7 @@ class CommandLineArgumentsHandler:
     """
     @brief Force full output flag.
     """
-    force_full_output_flag: bool = False  
+    force_full_output_flag: bool = None  
 
     """
     @brief Arguments handler.
@@ -88,8 +88,8 @@ class CommandLineArgumentsHandler:
         self.argument_parser.add_argument('--debug', action="store_true", help='Set logging to debug')  # Add argument to set logging to debug
         self.argument_parser.add_argument('--show_temperature_recommendations', action="store_true", help='Display values for various use cases')  # Add argument to display values for various use cases
         self.argument_parser.add_argument('--simulate_calls_only', action="store_true", help=f'Do not perform the calls to LLM: used for debugging purpose.')  # Add argument to simulate calls only
-        self.argument_parser.add_argument('--force_top_p', action="store_true", help=f'Increases diversity from various probable outputs in results.')  # Add argument to increase diversity from various probable outputs in results
-        self.argument_parser.add_argument('--force_temperature', action="store_true", help=f'Higher temperature increases non sense and creativity while lower yields to focused and predictable results.')  # Add argument to increase non sense and creativity while lower yields to focused and predictable results
+        self.argument_parser.add_argument('--force_top_p', type=float, help=f'Increases diversity from various probable outputs in results.')  # Add argument to increase diversity from various probable outputs in results
+        self.argument_parser.add_argument('--force_temperature', type=float, help=f'Higher temperature increases non sense and creativity while lower yields to focused and predictable results.')  # Add argument to increase non sense and creativity while lower yields to focused and predictable results
         self.argument_parser.add_argument('--force_full_output', action="store_true", help=f'By default remove all what is not source code, this option allows to take into account all output from the LLM.')  # Add argument to take into account all output from the LLM
 
         self.args = self.argument_parser.parse_args()  # Parse command line arguments
@@ -103,7 +103,7 @@ class CommandLineArgumentsHandler:
         @brief Check if temperature recommendations should be displayed.
         """
         if self.args.show_temperature_recommendations:
-            LLMUtils.print_recommended_temperature_and_top_p(self.logger)  # Print recommended temperature and top p
+            LLMUtils.print_recommended_temperature_and_top_p_values(self.logger)  # Print recommended temperature and top p
             sys.exit(0)  # Exit the application
 
     # Update logging level if debug mode is enabled
@@ -144,7 +144,7 @@ class CommandLineArgumentsHandler:
         @brief Update temperature if provided.
         """
         if self.args.force_temperature:
-            self.llm_utils.set_temperature(self.args.force_temperature)  # Update temperature
+            self.llm_utils.set_default_temperature(self.args.force_temperature)  # Update temperature
         return self
 
     # Update top p if provided
@@ -153,7 +153,7 @@ class CommandLineArgumentsHandler:
         @brief Update top p if provided.
         """
         if self.args.force_top_p:
-            self.llm_utils.set_top_p(self.args.force_top_p)  # Update top p
+            self.llm_utils.set_default_top_p(self.args.force_top_p)  # Update top p
         return self
 
     # Update force full output if provided
