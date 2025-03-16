@@ -53,10 +53,12 @@ To create new custom requests, a JSON file must be created with the following sc
         "request": "Rewrite the whole code to node.js/typescript ensuring you stay as close as possible to the existing code, same function name, code organization, variable names, code block, ..."
         // Following lines are optional: To be used only if destination is a dufferent type as source file
         ,"temperature": 0.2 
-        ,"top_p": 0.1
-        ,"forced_destination_language_name": "md"
-        ,"generate_full_output": "True"
-        ,"force_comment_caracter": "" // For MD it is an empty string "", for Python, it would be "#", for Typescript, Java, C++ it would be "//", ...
+        ,"top_p": 0.1^
+        ,"language_name": "typescript" // Language name used to filter out source code from MD generated LLM
+        ,"generated_file_extension": "ts" // Extension to add to the source code
+        ,"forced_source_file_types": "java,py" // Extension to search for, regexp accepted
+        ,"generate_full_output": "True" // Specify if full LLM output shall be provided, if false, only source code will be provided
+        ,"force_comment_caracter": "//" // For MD it is an empty string "", for Python, it would be "#", for Typescript, Java, C++ it would be "//", ...
 
     }
 ]
@@ -147,7 +149,9 @@ cat > my_request.json << EOF
         "request": "Rewrite the whole code to node.js/typescript ensuring you keep exactly the same semantic and structure: same function name, code organization, variable names, code block, ...",
         "temperature": 0.2, 
         "top_p": 0.1
-        ,"forced_destination_language_name": "typescript"
+        ,"language_name": "typescript"
+        ,"generated_file_extension": "ts"
+        ,"forced_source_file_types": "java,py"
         ,"generate_full_output": "False"
         ,"force_comment_caracter": "//" 
     }
@@ -174,5 +178,17 @@ To use this new request, you might want to consider specific input or output lan
 
 See below an example, how to translate any java or python code in the hieracrhy to typescript:
 ```bash
-python gpt2code --from_directory source_repo --to_directory destination_repo  --force_source_file_types 'java,py' --code_request 6 --generated_file_extension "ts" --language_name "typescript"
+python gpt2code --from_directory source_repo --to_directory destination_repo  --code_request 6
 ```
+# Next steps
+1. The script should be able to reply a factor of precision for specific requests. Such requests would be:
+ * Precision of comments versus semantics of the code
+ * Quality of the code following software best practices
+  
+2. We should be able to process files from multiple different languages to their own langage 
+ * For example commenting JAVA and Python in one directirs structure within one request 
+ * Currently when transforming a file willing to keep the same language as the original one, multiple call to the script are needed
+ * The script supports multiple different source files to one specific target file type. For example:
+   * Transform multiple source files to one destination language
+   * Create MD files (Typically documentation) from a source file
+
