@@ -192,3 +192,7 @@ python gpt2code --from_directory source_repo --to_directory destination_repo  --
    * Transform multiple source files to one destination language
    * Create MD files (Typically documentation) from a source file
 
+3. Because the script approaches transformations of files independently, it cannot provide the full visibility to the LLM of the associated source files. Instead AST or similar approaches shall be leveraged to provide an overview of all the associated files to one specific file to be processed. In addition any change happening to the class names or method names shall be propagated in all files instanciating the class and using the method.
+   
+4. The script shall be able to recognize the number of tokens before performing a request. If the number of tokens is too high, the script should eith be able to split the file (using AST) or request the user to split the file himself. When the script splits the file, a reconstruction should happen in the generated asset.
+5. 
