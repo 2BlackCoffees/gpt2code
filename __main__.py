@@ -81,16 +81,16 @@ class CommandLineArgumentsHandler:
         self.argument_parser.add_argument('--skip_files', type=self.split_string_by_comma, help='Comma separated list of files to be skipped')  # Add argument to specify a comma separated list of files to be skipped
         self.argument_parser.add_argument('--language_name', type=str, help='Language name: Java, Python, C++, C, Typescript, Shell, PlantUML, All')  # Add argument to specify the language name
         self.argument_parser.add_argument('--code_request', type=int, help=f'Specify code request to process from the following list: [[ {self.llm_utils.get_all_code_requests_and_ids_str()} ]], default is {self.selected_code_request_id}')  # Add argument to specify the code request to process
-        self.argument_parser.add_argument('--force_source_file_types', type=self.split_string_by_comma, help=f'Specify source file types as regexp separated by commas')  # Add argument to specify source file types as regexp separated by commas
-        self.argument_parser.add_argument('--generated_file_extension', type=str, help=f'File extension to be added to the generated file')  # Add extension generated
-        self.argument_parser.add_argument('--force_comment_string', type=str, help=f'Specify the string to be used for comments')  # Add argument to specify the string to be used for comments
-        self.argument_parser.add_argument('--force_destination_language_name', type=str, help=f'Specify the destination language name that will be used to extract source code from MD file')  # Add argument to specify the destination language name
         self.argument_parser.add_argument('--debug', action="store_true", help='Set logging to debug')  # Add argument to set logging to debug
         self.argument_parser.add_argument('--show_temperature_recommendations', action="store_true", help='Display values for various use cases')  # Add argument to display values for various use cases
         self.argument_parser.add_argument('--simulate_calls_only', action="store_true", help=f'Do not perform the calls to LLM: used for debugging purpose.')  # Add argument to simulate calls only
-        self.argument_parser.add_argument('--force_top_p', type=float, help=f'Increases diversity from various probable outputs in results.')  # Add argument to increase diversity from various probable outputs in results
-        self.argument_parser.add_argument('--force_temperature', type=float, help=f'Higher temperature increases non sense and creativity while lower yields to focused and predictable results.')  # Add argument to increase non sense and creativity while lower yields to focused and predictable results
+        self.argument_parser.add_argument('--force_top_p', type=float, help=f'Overide default: Increases diversity from various probable outputs in results.')  # Add argument to increase diversity from various probable outputs in results
+        self.argument_parser.add_argument('--force_temperature', type=float, help=f'Overide default: Higher temperature increases non sense and creativity while lower yields to focused and predictable results.')  # Add argument to increase non sense and creativity while lower yields to focused and predictable results
         self.argument_parser.add_argument('--force_full_output', action="store_true", help=f'By default remove all what is not source code, this option allows to take into account all output from the LLM.')  # Add argument to take into account all output from the LLM
+        self.argument_parser.add_argument('--force_source_file_types', type=self.split_string_by_comma, help=f'Overide default: Specify source file types as regexp separated by commas')  # Add argument to specify source file types as regexp separated by commas
+        self.argument_parser.add_argument('--generated_file_extension', type=str, help=f'Oerride default file extension to be added to the generated file')  # Add extension generated
+        self.argument_parser.add_argument('--force_comment_string', type=str, help=f'Specify the string to be used for comments')  # Add argument to specify the string to be used for comments
+        self.argument_parser.add_argument('--force_destination_language_name', type=str, help=f'Specify the destination language name that will be used to extract source code from MD file')  # Add argument to specify the destination language name
 
         self.args = self.argument_parser.parse_args()  # Parse command line arguments
         self.check_temperature_recommendations()

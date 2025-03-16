@@ -174,7 +174,7 @@ class LLMUtils:
         """
         return self._get_parameter_value_from_request('generated_file_extension', selected_code_request)
     
-    def get_generate_full_output(self, selected_code_request: int):
+    def get_generate_full_output(self, selected_code_request: int) -> bool:
         """
         @brief Informs whether full output is requested.
         @param selected_code_request The id of the request.
@@ -182,11 +182,12 @@ class LLMUtils:
         """
         generate_full_output: bool = self._get_parameter_value_from_request('generate_full_output', selected_code_request)
         if generate_full_output is not None:
-            if generate_full_output.lower() == 'false': generate_full_output = False
+            if isinstance(generate_full_output, str):
+                generate_full_output = generate_full_output.lower() == 'true'
             return generate_full_output
         return False
     
-    def get_force_comment_caracter(self, selected_code_request: int):
+    def get_force_comment_caracter(self, selected_code_request: int) -> str:
         """
         @brief Informs whether full output is requested.
         @param selected_code_request The id of the request.
@@ -195,6 +196,25 @@ class LLMUtils:
         force_comment_caracter: bool = self._get_parameter_value_from_request('force_comment_caracter', selected_code_request)
         if force_comment_caracter is not None:
             return force_comment_caracter
+        return None
+    
+    def get_language_name(self, selected_code_request: int) -> str:
+        """
+        @brief Provide language name specified in JSON.
+        @param selected_code_request The id of the request.
+        @return Language name defined in json.
+        """
+        return self._get_parameter_value_from_request('language_name', selected_code_request)
+    
+    def get_forced_source_file_types(self, selected_code_request: int) -> List:
+        """
+        @brief Provide language name specified in JSON.
+        @param selected_code_request The id of the request.
+        @return Language name defined in json.
+        """
+        forced_source_file_types: str = self._get_parameter_value_from_request('forced_source_file_types', selected_code_request)
+        if forced_source_file_types is not None:
+            return forced_source_file_types.split(',')
         return None
     
     def get_dict_requestid_request_name(self, selecteted_request: int):

@@ -92,15 +92,21 @@ class ApplicationService:
         # Initialize the file type object
         file_type_handler: FileTypeInterface = None
 
+        if language_name is None:
+            language_name = llm_utils.get_language_name(selected_code_request)
+            
         # Set the forced destination language name if it is not provided
         if forced_destination_language_name is None:
             forced_destination_language_name = language_name
 
         if generated_file_extension is None:
             generated_file_extension = llm_utils.get_generated_file_extension(selected_code_request)
-
+        
         if generate_full_output is None:
             generate_full_output = llm_utils.get_generate_full_output(selected_code_request)
+
+        if forced_source_file_types is None:
+            forced_source_file_types = llm_utils.get_forced_source_file_types(selected_code_request)
 
         if forced_comment_string is None:
             forced_comment_string = llm_utils.get_force_comment_caracter(selected_code_request)
