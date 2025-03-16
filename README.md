@@ -50,11 +50,14 @@ To create new custom requests, a JSON file must be created with the following sc
     
     {
         "request_name": "Rewrite code to typescript very close to intial source code",
-        "request": "Rewrite the whole code to node.js/typescript ensuring you stay as close as possible to the existing code, same function name, code organization, variable names, code block, ...",
-        "temperature": 0.2, 
-        "top_p": 0.1
-        // Following line is optional: To be used only if destination is a dufferent type as source file
+        "request": "Rewrite the whole code to node.js/typescript ensuring you stay as close as possible to the existing code, same function name, code organization, variable names, code block, ..."
+        // Following lines are optional: To be used only if destination is a dufferent type as source file
+        ,"temperature": 0.2 
+        ,"top_p": 0.1
         ,"forced_destination_language_name": "md"
+        ,"generate_full_output": "True"
+        ,"force_comment_caracter": "" // For MD it is an empty string "", for Python, it would be "#", for Typescript, Java, C++ it would be "//", ...
+
     }
 ]
 ```
@@ -134,7 +137,7 @@ Please note that it can be useful to provide a destination directoy specifying t
 
 ### Example to create your own requests:
 
-Create the content of the file my_request.json:
+Create the content of the file my_request.json that will transform any source file to node.js/typescript:
 ```bash
 cat > my_request.json << EOF
 [
@@ -144,6 +147,9 @@ cat > my_request.json << EOF
         "request": "Rewrite the whole code to node.js/typescript ensuring you keep exactly the same semantic and structure: same function name, code organization, variable names, code block, ...",
         "temperature": 0.2, 
         "top_p": 0.1
+        ,"forced_destination_language_name": "typescript"
+        ,"generate_full_output": "False"
+        ,"force_comment_caracter": "//" 
     }
 ]
 EOF
@@ -158,12 +164,15 @@ python gpt2code -h
 2025-02-22 18:58:19 INFO     File my_request.json was read.
 ...
   --code_request CODE_REQUEST
-                        Specify code request to process from the following list: [[ 0: Create Unittests, 1: Comments creation, 2: Language best practices, 3: OOP Best practices, 4: UML Class diagrams reverse
-                        engineering, 5: Rewrite code to typescript very close to source code ]], default is 0
+                        Specify code request to process from the following list: [[ 0: Create Unittests, 1: Comments creation, 2: Review comments, 3: Language best practices, 4: OOP Best practices, 5: UML
+                        Class diagrams reverse engineering, 6: Rewrite code to typescript as the initial source code ]], default is 0
+
 ...
 ```
 
-To use this new request, you might want to consider specific input or output language names. In addition comments of the target labguage shall be used to comment out what is not code specific relevant if the current LLM engine encoding provides a markdown response instead of pure languare response:
+To use this new request, you might want to consider specific input or output language names. In addition comments of the target labguage shall be used to comment out what is not code specific relevant if the current LLM engine encoding provides a markdown response instead of pure languare response.
+
+See below an example, how to translate any java or python code in the hieracrhy to typescript:
 ```bash
-python gpt2code --from_directory java_code --to_directory new_code --force_comment_string '///' --force_source_file_types 'java' --force_destination_language_name typescript --code_request 5
+python gpt2code --from_directory source_repo --to_directory destination_repo  --force_source_file_types 'java,py' --code_request 6 --generated_file_extension "ts" --language_name "typescript"
 ```

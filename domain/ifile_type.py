@@ -23,7 +23,7 @@ class FileTypeInterface:
     @param source_file_extensions A list of source file extensions. Defaults to None.
     @param comment_string The comment string. Defaults to None.
     """
-    def __init__(self, destination_language_name: str, destination_file_extension: str, comment_string: str = None, source_file_extensions: List[str] = None):
+    def __init__(self, destination_language_name: str, generated_file_extension: str, comment_string: str = None, source_file_extensions: List[str] = None):
         """
         @brief Initializes the FileTypeInterface object.
         
@@ -35,7 +35,7 @@ class FileTypeInterface:
         # Renamed variable names to be more descriptive and follow PEP 8 conventions
         self._destination_language_name: str = destination_language_name
         self._source_file_extensions: List[str] = source_file_extensions
-        self._destination_file_extension: str = destination_file_extension
+        self._generated_file_extension: str = generated_file_extension
         self._comment_string: str = comment_string
 
     def _get_raw_source_file_extensions(self) -> List[str]:
@@ -54,7 +54,7 @@ class FileTypeInterface:
         @return A list of regular expressions representing the source file extensions.
         """
 
-        return [re.compile('\\.' + extension) for extension in self._get_raw_source_file_extensions()]
+        return [re.compile('\\.' + extension + '$') for extension in self._get_raw_source_file_extensions()]
     
     def get_destination_language_name(self) -> str:
         """
@@ -81,4 +81,4 @@ class FileTypeInterface:
         
         @return The generated file extension. If destination_file_extension is None, returns None.
         """
-        return f'.{self._destination_file_extension}' if self._destination_file_extension is not None else None
+        return f'.{self._generated_file_extension}' if self._generated_file_extension is not None else None

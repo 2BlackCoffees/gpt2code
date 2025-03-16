@@ -49,7 +49,7 @@ class ApplicationService:
     def __init__(self, source_directory: str, destination_directory: str, files_to_skip: List, language_name: str, \
                  simulate_llm_calls_only: bool, logger: Logger, llm_utils: LLMUtils, \
                  selected_code_request: int, model_name: str, \
-                 forced_source_file_types: List, forced_destination_file_type: str, forced_comment_string: str, 
+                 forced_source_file_types: List, generated_file_extension: str, forced_comment_string: str, 
                  forced_destination_language_name: str, generate_full_output: bool):
         """
         @brief Initializes the ApplicationService object with the provided parameters.
@@ -96,8 +96,8 @@ class ApplicationService:
         if forced_destination_language_name is None:
             forced_destination_language_name = language_name
 
-        if forced_destination_file_type is None:
-            forced_destination_file_type = llm_utils.get_forced_destination_file_type(selected_code_request)
+        if generated_file_extension is None:
+            generated_file_extension = llm_utils.get_generated_file_extension(selected_code_request)
 
         if generate_full_output is None:
             generate_full_output = llm_utils.get_generate_full_output(selected_code_request)
@@ -112,33 +112,33 @@ class ApplicationService:
             match language_name.lower():
                 case 'c':
                     # Use FileTypeCpp for C language
-                    file_type_handler = CppFileType(forced_destination_language_name, forced_destination_file_type, forced_comment_string)
+                    file_type_handler = CppFileType(forced_destination_language_name, generated_file_extension, forced_comment_string)
                 case 'c++':
                     # Use FileTypeCpp for C++ language
-                    file_type_handler = CppFileType(forced_destination_language_name, forced_destination_file_type, forced_comment_string)
+                    file_type_handler = CppFileType(forced_destination_language_name, generated_file_extension, forced_comment_string)
                 case 'java':
                     # Use FileTypeJava for Java language
-                    file_type_handler = JavaFileType(forced_destination_language_name, forced_destination_file_type, forced_comment_string)
+                    file_type_handler = JavaFileType(forced_destination_language_name, generated_file_extension, forced_comment_string)
                 case 'python':
                     # Use FileTypePython for Python language
-                    file_type_handler = PythonFileType(forced_destination_language_name, forced_destination_file_type, forced_comment_string)
+                    file_type_handler = PythonFileType(forced_destination_language_name, generated_file_extension, forced_comment_string)
                 case 'shell':
                     # Use FileTypeShell for Shell language
-                    file_type_handler = ShellFileType(forced_destination_language_name, forced_destination_file_type, forced_comment_string)
+                    file_type_handler = ShellFileType(forced_destination_language_name, generated_file_extension, forced_comment_string)
                 case 'typescript':
                     # Use FileTypeTypescript for Typescript language
-                    file_type_handler = TypescriptFileType(forced_destination_language_name, forced_destination_file_type, forced_comment_string)
+                    file_type_handler = TypescriptFileType(forced_destination_language_name, generated_file_extension, forced_comment_string)
                 case 'plantuml':
                     # Use FileTypePlantUML for PlantUML language
-                    file_type_handler = PlantUMLFileType(forced_destination_language_name, forced_destination_file_type, forced_comment_string)
+                    file_type_handler = PlantUMLFileType(forced_destination_language_name, generated_file_extension, forced_comment_string)
                 case _:
                     logger.error(f"Language name {language_name} is not supported, either force source code type or select a supported language name.")
                     sys.exit(1)
-            logger.info(f"Handling predefined request {selected_code_request}, language name: {language_name}, forced destination file type: {forced_destination_file_type}, Forced comment string: {forced_comment_string}")
+            logger.info(f"Handling predefined request {selected_code_request}, language name: {language_name}, forced destination file type: {generated_file_extension}, Forced comment string: {forced_comment_string}")
         else:
             # Use FileTypeAll for other languages
-            file_type_handler = AllFileType(forced_destination_language_name, forced_destination_file_type, forced_comment_string, forced_source_file_types)
-            logger.info(f"Handling generic request {selected_code_request}, language name: {language_name}, forced destination file type: {forced_destination_file_type}, Forced comment string: {forced_comment_string}, Forced source file type: {forced_source_file_types}")
+            file_type_handler = AllFileType(forced_destination_language_name, generated_file_extension, forced_comment_string, forced_source_file_types)
+            logger.info(f"Handling generic request {selected_code_request}, language name: {language_name}, forced destination file type: {generated_file_extension}, Forced comment string: {forced_comment_string}, Forced source file type: {forced_source_file_types}")
 
         llm_access_handler: AbstractLLMAccess = LLMAccess(logger, model_name) if not simulate_llm_calls_only \
             else LLMAccessSimulator(logger, model_name)

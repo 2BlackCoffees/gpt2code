@@ -43,7 +43,10 @@ class LLMUtils:
                 "generate_full_output": False
             },
             {   'request_name': 'Review comments',
-                'request': f"Please check if the Doxygen documentation fits with the code semantic semantic. For minor issues or errors, reply the word 'Acceptable'. For good documentation, reply the word 'OK'. However if you find serious errors in the documentation, please provide details and suggestion together with the name of the method, class, variable and line numbers. ",
+                'request': 'Review the Doxygen documentation against the code semantics and respond as follows:' +
+                           '* If the documentation is accurate and well-written, I should reply with "OK".' +
+                           '* If there are minor issues or errors that do not significantly impact the understanding of the code, I should reply with "Acceptable".' +''
+                           '* If I find serious errors in the documentation, I will provide detailed feedback including suggestions for correction, along with specific references to the method, class, variable, and line numbers involved.',
                 "temperature": 0.1, 
                 "top_p": 0.2,
                 "forced_destination_file_type": "md",
@@ -163,13 +166,13 @@ class LLMUtils:
                 break
         return None    
 
-    def get_forced_destination_file_type(self, selected_code_request: int):
+    def get_generated_file_extension(self, selected_code_request: int):
         """
         @brief Provide the forced file type extension  according to the LLM request and selected language.
         @param selected_code_request The id of the request.
         @return The forced file type for the destination: it will be None unless specifically required from the request.
         """
-        return self._get_parameter_value_from_request('forced_destination_file_type', selected_code_request)
+        return self._get_parameter_value_from_request('generated_file_extension', selected_code_request)
     
     def get_generate_full_output(self, selected_code_request: int):
         """
@@ -179,6 +182,7 @@ class LLMUtils:
         """
         generate_full_output: bool = self._get_parameter_value_from_request('generate_full_output', selected_code_request)
         if generate_full_output is not None:
+            if generate_full_output.lower() == 'false': generate_full_output = False
             return generate_full_output
         return False
     

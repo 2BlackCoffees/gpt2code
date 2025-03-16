@@ -22,7 +22,7 @@ class PythonFileType(FileTypeInterface):
 
         @return A list of regular expressions matching Python file extensions.
         """
-        return [ 'py$' ]
+        return [ 'py' ]
 
     def _default_comment_characters(self) -> str:
         """
@@ -45,7 +45,7 @@ class CppFileType(FileTypeInterface):
 
         @return A list of regular expressions matching C++ file extensions.
         """
-        return [ '[ch][xp\\+]*$' ]
+        return [ '[ch][xp\\+]*' ]
 
     def _default_comment_characters(self) -> str:
         """
@@ -70,7 +70,7 @@ class JavaFileType(FileTypeInterface):
         @return A list of regular expressions matching Java file extensions.
         """
 
-        return [ 'java$' ]
+        return [ 'java' ]
 
     def _default_comment_characters(self) -> str:
         """
@@ -95,7 +95,7 @@ class ShellFileType(FileTypeInterface):
         @return A list of regular expressions matching Shell file extensions.
         """
 
-        return [ '[ckz]{0,1}sh$' ]
+        return [ '[ckz]{0,1}sh' ]
 
     def _default_comment_characters(self) -> str:
         """
@@ -120,7 +120,7 @@ class TypescriptFileType(FileTypeInterface):
         @return A list of regular expressions matching Typescript file extensions.
         """
 
-        return [ '[tj]s$' ]
+        return [ '[tj]s' ]
 
     def _default_comment_characters(self) -> str:
         """
@@ -210,10 +210,10 @@ class AllFileType(FileTypeInterface):
         """
         Gets the generated file extension for all files.
 
-        If force_destination_file_type is specified, this method returns a file extension based on the force_destination_file_type.
+        If generated_file_extension is specified, this method returns a file extension based on the generated_file_extension.
         Otherwise, it returns '.md'.
 
         @return The generated file extension for all files.
         """
 
-        return f'.{self._destination_file_extension}' if self._destination_file_extension is not None else '.md'
+        return f'.{self._generated_file_extension}' if self._generated_file_extension is not None else '.md'
