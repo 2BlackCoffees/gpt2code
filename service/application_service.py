@@ -113,7 +113,9 @@ class ApplicationService:
 
         # Determine the file type handler based on the language name and forced parameters
         if forced_source_file_types is None:
-
+            if language_name is None:
+                logger.error("Please specify language name")
+                sys.exit(1)
             # Use a match statement to determine the file type handler based on the language name
             match language_name.lower():
                 case 'c':
